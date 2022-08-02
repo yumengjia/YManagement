@@ -2,6 +2,9 @@ import React, { useEffect, useState} from 'react'
 import { useNavigate } from 'react-router-dom'
 import {Card, Button, Table, Form,message} from 'antd'
 
+import { connect } from 'react-redux'
+import {logout} from '../../redux/actions/user'
+
 import {PAGE_SIZE} from '../../utils/constants'
 import { reqRoles, reqAddRole, reqUpdateRole } from '../../api'
 import AddForm from './add-form'
@@ -10,7 +13,7 @@ import storage from '../../utils/storageUtils'
 import formateDate from '../../utils/dateUtils'
 
 
-function Role() {
+function Role(props) {
 
     const [form] = Form.useForm();
     const navigate = useNavigate()
@@ -89,7 +92,12 @@ function Role() {
     }
 
     const getMenus = (menusList) =>{
+    /*   console.log(menus);
+      console.log(menusList); */
+      if(menus !== menusList){
         setMenus(menusList)
+      }
+       
     }
 
     
@@ -104,8 +112,10 @@ function Role() {
         const result = await reqUpdateRole(_id,menus,auth_time,auth_name)
         if(result.status===0){
           if(role._id===user.role_id){
-            storage.removeUser('user')
-            navigate('/login',{replace:true})
+           /*  storage.removeUser('user')
+            navigate('/login',{replace:true}) */
+            props.logout()
+
             message.success('当前用户角色权限修改了，请重新登录')
           }else{
             message.success('更新成功')
@@ -171,4 +181,9 @@ function Role() {
      );
 }
 
-export default Role;
+export default connect(
+  state => ({}),
+  {
+    logout
+  }
+)(Role)

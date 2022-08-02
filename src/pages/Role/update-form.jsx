@@ -27,7 +27,7 @@ function UpdateForm(props) {
     }
 
     const onCheck = (checkedKeysValue) => {
-        // console.log('onCheck', checkedKeysValue);
+        console.log('onCheck', checkedKeysValue);
         setCheckedKeys(checkedKeysValue);
     };
 

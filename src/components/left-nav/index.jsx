@@ -1,22 +1,43 @@
 import { Link,useLocation, useNavigate} from 'react-router-dom'
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Menu} from 'antd';
 import _ from 'lodash'
+import {connect} from 'react-redux'
 
 import './index.css'
 import logo from '../../assets/images/logo.png'
 import menuList from '../../config/menuConfig.js'
 import storage from '../../utils/storageUtils'
+import { setHeaadTitle } from '../../redux/actions/categorys';
 
-function LeftNav() {
+function LeftNav(props) {
 
-   
     const navigate = useNavigate()
+    const menu = useRef()
     const [list,setList] = useState([])
     let location = useLocation()
     let path = location.pathname
     let openKey = ''
- 
+
+    //获取当前选择菜单标题
+    const getTitle = (key) => {
+        let title = ''
+        menuList.forEach(item => {
+            if(item.key === key){
+                title = item.title
+            }
+            if(item.children){
+                item.children.forEach(i => {
+                    if(i.key===key){
+                        title = i.title
+                    }
+                })
+            }
+        })
+        return title
+    }
+
+    
     //获取当前登录用户的菜单权限
     const userMenuList = () => {
         let user = storage.getUser('user') 
@@ -59,14 +80,24 @@ function LeftNav() {
             }
         }) 
     }
-    getOpenKey()
-    const onClick = (e) => {
-        navigate(e.key)
+    getOpenKey()   
+    const onclick = ({ item, key }) => {
+        // console.log(item.props.title);
+        // console.log(selectedKeys);
+        // console.log(key,path);
+        
+        navigate(key)
+        props.setHeaadTitle(item.props.title)
     }
 
     useEffect(()=>{
+        let menuSelect = menu.current?.props.defaultSelectedKeys[0]
         let newList = userMenuList()
         setList(newList)
+        if(menuSelect === path || path.indexOf(menuSelect) ===0){
+            props.setHeaadTitle(getTitle(menuSelect))
+        } 
+     
     },[])
 
     return ( 
@@ -78,7 +109,8 @@ function LeftNav() {
 
             {/* 菜单 */}
             <Menu
-                onClick={onClick}
+                ref={menu}
+                onSelect={onclick}
                 style={{ width: 200 }}
                 defaultSelectedKeys={[path]} //初始选中的菜单项key数组
                 defaultOpenKeys={[openKey]} //初始展开的submenu菜单项key数组  
@@ -91,4 +123,9 @@ function LeftNav() {
      );
 }
 
-export default LeftNav;
+export default connect(
+    state => ({}),
+    {
+        setHeaadTitle
+    }
+)(LeftNav);

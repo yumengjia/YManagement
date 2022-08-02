@@ -1,37 +1,45 @@
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Form, Input, Button, message} from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import { connect } from 'react-redux';
+import { login } from '../../redux/actions/user';
 
 import './index.css'
 import logo from '../../assets/images/logo.png'
-import {regLogin} from '../../api/index.js'
+// import {regLogin} from '../../api/index.js'
 // import memory from '../../utils/memoryUtils';
 import storage from '../../utils/storageUtils';
 
-function Login() {
-
+function Login(props) {
+    
+    // console.log(props);
     const navigate = useNavigate();
     const user = storage.getUser('user')
     if(user._id){
     return  <Navigate to='/' replace={true}/>
     }
+    const errorMsg = props.user.errorMsg 
 
-    const onFinish = async (values) => {
+
+    const onFinish = (values) => {
         const {username,password} = values
-        const result = await regLogin(username,password)
+        props.login(username,password)
+      
+        // const result = await regLogin(username,password)
         // console.log('请求成功',response.data);
         // const result = response.data
-        if(result.status === 0){
-          message.success('登录成功');
-          const user = result.data
+        // if(result.status === 0){
+        //   message.success('登录成功');
+        //   const user = result.data
         //   memory.user = user//保存在内存中
-          storage.saveUser('user',user)//保存在local中
+        //   storage.saveUser('user',user)//保存在local中
           //跳转到管理界面[编程式路由]
-          navigate('/',{replace:true})
-        }else{
-          message.error(result.msg);
-        } 
+        //   navigate('/',{replace:true})
+        // }else{
+        //   message.error(result.msg);
+        // } 
     }
+
 
     const  validatePwd = (_,value)=>{
         if(!value){
@@ -55,7 +63,9 @@ function Login() {
                 <h1>React项目：后台管理系统</h1>
             </header>
             <section className='login-content'>
+            <div  className={errorMsg?'error show':'error'}>{errorMsg}</div>
                 <h2>用户登录</h2>
+            
 
                 <Form
                     name="normal_login"
@@ -102,4 +112,9 @@ function Login() {
     );
 }
 
-export default Login;
+export default connect(
+    state => ({user:state.user}),
+    {
+        login
+    }
+)(Login);

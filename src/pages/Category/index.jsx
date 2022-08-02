@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Card, Table, Button,Space, message} from 'antd'
+import { Card, Table, Button,Space} from 'antd'
 import {PlusOutlined, ArrowRightOutlined} from '@ant-design/icons';
+
+import {connect} from 'react-redux'
+import { getCategorys } from '../../redux/actions/categorys.js'
 
 import './index.css'
 import LinkButton from '../../components/LinkButton'
-import { reqCategory,reqUpdateCategory,reqAddCategory} from '../../api';
+import { reqUpdateCategory,reqAddCategory} from '../../api';
 import AddForm from './add-form';
 import UpdateForm from './update-form';
 
-function Category() {
+function Category(props) {
 
     const [categoryData, setData] = useState([])  //一级分类列表
     const [subCategoryData, setSubData] = useState([]) //二级分类列表
@@ -38,28 +41,10 @@ function Category() {
     ];
 
     //发送ajax请求，获取一级/二级分类列表
-    const getCategory = async(parentid)=>{
+    const getCategory = ()=>{
         setLoading(true)
-        let Id = parentid || parentId
-        const result = await reqCategory(Id)
-        setLoading(false)
-        // console.log('reqCategory',result);
-        //取出分类数组【可能是一级或二级】
-        if(result.status ===0){
-          const categorys = result.data
-          if(Id === 0){
-            //更新一级分类列表
-            setData(categorys)
-            // console.log('一级',categoryData);
-          }else{
-            //更新二级分类列表
-            setSubData(categorys)
-            // console.log('二级',subCategoryData);
-          }
-         
-        }else{
-          message.error('获取分类列表失败')
-        }
+        props.getCategorys(parentId)
+        setLoading(false) 
       }
     
 
@@ -121,6 +106,14 @@ function Category() {
         setPage(currentPage)
     }
 
+    useEffect(()=>{
+        if(parentId === 0){
+            setData(props.categorys)
+        }else{
+            setSubData(props.categorys)
+        }
+        // eslint-disable-next-line
+    },[props.categorys])
 
     useEffect(()=>{
         getCategory(parentId) //当分类ID发生变化时，发送请求获取分类列表
@@ -171,4 +164,9 @@ function Category() {
      );
 }
 
-export default Category;
+export default connect(
+    state => ({categorys:state.categorys}),
+    {
+        getCategorys
+    }
+)(Category);

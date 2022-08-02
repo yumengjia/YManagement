@@ -1,9 +1,14 @@
 import React, { useState, useEffect} from 'react'
 import { Card, Button ,message} from 'antd'
 import ReactEcharts from 'echarts-for-react'
-import {reqAllProducts, reqCategory} from '../../api/index.js'
 
-function Line() {
+import {connect} from 'react-redux'
+import { getAllProducts } from '../../redux/actions/products.js'
+import { getCategorys } from '../../redux/actions/categorys.js'
+
+// import {reqCategory} from '../../api/index.js'
+
+function Line(props) {
     const [products,setProducts] = useState([])
     const [categorys,setCategorys] = useState([])
     const [list, setList] = useState([])
@@ -12,31 +17,7 @@ function Line() {
     const update = () =>{
       message.info('该功能正在开发中！请稍后哟');
     }
-
-    //获取所有商品
-    const getAllProducts = async() => {
-      const result = await reqAllProducts()
-      if(result.status===0){
-        setProducts(result.data)
-      } 
-    }
-
-    //获取一级分类列表
-    const getCategorys = async () => {
-      let categoryList = []
-      let list = []
-      const result = await reqCategory(0)
-      if(result.status===0){
-        result.data.forEach(item => {
-          item.count = 0
-          list.push(item.name)
-        })
-      }
-      categoryList = result.data
-     
-      setCategorys(categoryList)
-      setList(list)
-    }
+    // console.log('props',props);
 
     //获取所有一级分类的二级分类数量
     const getCategoryCount = () => {
@@ -57,15 +38,31 @@ function Line() {
 
     }
 
+    useEffect(()=>{
+      setProducts(props.allProducts) 
+      // eslint-disable-next-line 
+    },[props.allProducts])
+
+    useEffect(() => {
+      let list = []
+      props.categorys.forEach(item => {
+        item.count = 0
+        list.push(item.name)
+      })
+      setCategorys(props.categorys)
+      setList(list)
+      // eslint-disable-next-line 
+    },[props.categorys])
+
     useEffect(()=> {
       getCategoryCount()
       // eslint-disable-next-line 
     },[products,categorys])
 
     useEffect(()=>{
-      getAllProducts()
-      getCategorys()
-
+      props.getAllProducts()  //获取所有商品
+      props.getCategorys(0)  //获取一级分类列表
+      // eslint-disable-next-line 
     },[])
   
     const getOption = (list,count) =>{
@@ -74,9 +71,6 @@ function Line() {
           text: '各类别的数量'
         },
         tooltip: {},
-      /*   legend: {
-          data: ['销量','库存']
-        }, */
         xAxis: {
           data: list
         },
@@ -107,4 +101,10 @@ function Line() {
      );
 }
 
-export default Line;
+export default connect(
+  state => ({allProducts:state.allProducts,categorys:state.categorys}),
+  {
+    getAllProducts,
+    getCategorys
+  }
+)(Line);

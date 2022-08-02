@@ -1,9 +1,13 @@
 import React, { useState, useEffect} from 'react'
 import { Card, Button ,message} from 'antd'
 import ReactEcharts from 'echarts-for-react'
-import {reqAllProducts, reqCategory} from '../../api/index.js'
+// import {reqAllProducts, reqCategory} from '../../api/index.js'
 
-function Bar() {
+import {connect} from 'react-redux'
+import { getAllProducts } from '../../redux/actions/products.js'
+import { getCategorys } from '../../redux/actions/categorys.js'
+
+function Bar(props) {
 
     const [products,setProducts] = useState([])
     const [categorys,setCategorys] = useState([])
@@ -13,32 +17,7 @@ function Bar() {
     const update = () =>{
       message.info('该功能正在开发中！请稍后哟');
     }
-
-    //获取所有商品
-    const getAllProducts = async() => {
-      const result = await reqAllProducts()
-      if(result.status===0){
-        setProducts(result.data)
-      } 
-    }
-
-    //获取一级分类列表
-    const getCategorys = async () => {
-      let categoryList = []
-      let list = []
-      const result = await reqCategory(0)
-      if(result.status===0){
-        result.data.forEach(item => {
-          item.count = 0
-          list.push(item.name)
-        })
-      }
-      categoryList = result.data
     
-      setCategorys(categoryList)
-      setList(list)
-    }
-
     //获取所有一级分类的二级分类数量
     const getCategoryCount = () => {
       products.forEach(product => {
@@ -58,15 +37,31 @@ function Bar() {
 
     }
 
+    useEffect(()=>{
+      setProducts(props.allProducts) 
+      // eslint-disable-next-line 
+    },[props.allProducts])
+    
+    useEffect(() => {
+      let list = []
+      props.categorys.forEach(item => {
+        item.count = 0
+        list.push(item.name)
+      })
+      setCategorys(props.categorys)
+      setList(list)
+      // eslint-disable-next-line 
+    },[props.categorys])
+
     useEffect(()=> {
       getCategoryCount()
       // eslint-disable-next-line 
     },[products,categorys])
 
     useEffect(()=>{
-      getAllProducts()
-      getCategorys()
-
+      props.getAllProducts()  //获取所有商品
+      props.getCategorys(0)  //获取一级分类列表
+      // eslint-disable-next-line 
     },[])
 
     const getOption = (list,count) =>{
@@ -106,4 +101,10 @@ function Bar() {
      );
 }
 
-export default Bar;
+export default connect(
+  state => ({allProducts:state.allProducts,categorys:state.categorys}),
+  {
+    getAllProducts,
+    getCategorys
+  }
+)(Bar);

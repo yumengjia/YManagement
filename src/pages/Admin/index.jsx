@@ -1,18 +1,21 @@
 import { Layout } from 'antd';
 import { Navigate } from 'react-router-dom'
 import { Outlet } from 'react-router-dom';
+import {connect} from 'react-redux'
 
 
-import storage from "../../utils/storageUtils";
+// import storage from "../../utils/storageUtils";
 import LeftNav from '../../components/left-nav';
 import Header from '../../components/header';
 
 const {Footer, Sider, Content } = Layout;
 
-function Admin() {
-
-    const user = storage.getUser('user')
-    if(!user){
+function Admin(props) {
+  
+    // const user = storage.getUser('user')
+    const user = props.user
+    // console.log('hhh',user);
+    if(!user || !user._id){
         return <Navigate to={"/login"} replace={true}/>
     }
 
@@ -34,4 +37,6 @@ function Admin() {
      );
 }
 
-export default Admin;
+export default connect(
+    state => ({user:state.user})
+)(Admin);

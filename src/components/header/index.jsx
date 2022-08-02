@@ -3,6 +3,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Modal} from 'antd';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
 
+import { connect } from 'react-redux';
+import {logout} from '../../redux/actions/user'
+
 import './index.css'
 import storage from '../../utils/storageUtils';
 import menuList from '../../config/menuConfig';
@@ -11,7 +14,7 @@ import LinkButton from '../LinkButton';
 import { reqWhether } from '../../api'
 
 
-function Header() {
+function Header(props) {
 
     const [currentTime,setTime] = useState(formateDate(Date.now()))
     const [weather,setWeather] = useState()
@@ -24,6 +27,8 @@ function Header() {
     let path = location.pathname
     let timer = null
 
+    // console.log('props',props);
+
 
     const logOut = () => {
         confirm({
@@ -31,8 +36,9 @@ function Header() {
             icon: <ExclamationCircleOutlined />,
             onOk() {
               //删除保存的user数据，并跳转到登录界面
-              storage.removeUser('user')
-              navigate('/login',{replace:true})
+             /*  storage.removeUser('user')
+              navigate('/login',{replace:true}) */
+              props.logout()
             },
         });
     }
@@ -82,7 +88,7 @@ function Header() {
                 <LinkButton onClick={logOut}>退出</LinkButton>
             </div>
             <div className='header-bottom'>
-                <div className='header-bottom-left'>{title}</div>
+                <div className='header-bottom-left'>{props.headTitle}</div>
                 <div className='header-bottom-right'>
                     <span>{currentTime}</span>
                     <span>{weather}</span>
@@ -92,4 +98,7 @@ function Header() {
      );
 }
 
-export default Header;
+export default connect(
+    state => ({headTitle:state.headTitle}),
+    {logout}
+)(Header);
